@@ -1,0 +1,116 @@
+import streamlit as st
+import pandas as pd
+
+# --------------------------------------------------
+# PAGE CONFIG
+# --------------------------------------------------
+st.set_page_config(
+    page_title="AI Tool Usage Reports – India",
+    layout="wide"
+)
+
+# --------------------------------------------------
+# SIMPLE LOGIN (FIRST TIME USER)
+# --------------------------------------------------
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+
+if not st.session_state.logged_in:
+    st.title("🔐 User Login")
+
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
+
+    if st.button("Login"):
+        if username and password:
+            st.session_state.logged_in = True
+            st.success("Login successful!")
+            st.rerun()
+        else:
+            st.error("Please enter username and password")
+
+    st.stop()
+
+# --------------------------------------------------
+# MAIN DASHBOARD
+# --------------------------------------------------
+st.title("AI Tool Usage Reports – India")
+st.subheader("Location-wise AI Tool Usage by Users")
+
+st.markdown(
+    """
+    This dashboard shows **state and city-wise usage of AI tools in India**.
+    It helps analyze regional adoption of AI technologies.
+    """
+)
+
+# --------------------------------------------------
+# DATA
+# --------------------------------------------------
+data = {
+    "State": [
+        "Delhi", "Maharashtra", "Jharkhand", "Bihar",
+        "Odisha", "Odisha", "Bihar", "Karnataka"
+    ],
+    "City": [
+        "New Delhi", "Mumbai", "Ranchi", "Patna",
+        "Bhubaneswar", "Cuttack", "Jamshedpur", "Bengaluru"
+    ],
+    "AI Tool": [
+        "ChatGPT", "Copilot", "Gemini", "ChatGPT",
+        "Perplexity", "ChatGPT", "Gemini", "Copilot"
+    ],
+    "Usage Count": [
+        13, 11, 9, 7, 5, 6, 4, 10
+    ]
+}
+
+df = pd.DataFrame(data)
+
+# --------------------------------------------------
+# FILTER OPTION (STATE)
+# --------------------------------------------------
+st.markdown("### 🔍 Filter Options")
+
+state_list = ["All States"] + sorted(df["State"].unique().tolist())
+selected_state = st.selectbox("Select State", state_list)
+
+if selected_state != "All States":
+    df = df[df["State"] == selected_state]
+
+# --------------------------------------------------
+# DISPLAY DATA
+# --------------------------------------------------
+st.dataframe(df, use_container_width=True)
+
+# --------------------------------------------------
+# SUMMARY METRICS
+# --------------------------------------------------
+st.markdown("### 📊 Summary Insights")
+
+col1, col2, col3 = st.columns(3)
+
+col1.metric("Total Records", len(df))
+col2.metric("AI Tools Used", df["AI Tool"].nunique())
+col3.metric("Top City", df["City"].mode()[0])
+
+# --------------------------------------------------
+# LOGOUT OPTION
+# --------------------------------------------------
+if st.button("Logout"):
+    st.session_state.logged_in = False
+    st.rerun()
+
+# --------------------------------------------------
+# FOOTER
+# --------------------------------------------------
+st.success("Logical Endpoint: /aitool-usagereports")
+
+st.markdown(
+    """
+    **Project Name:** Location-wise AI Tools Used by Users in India  
+    **Features:** Login, State Filter, Usage Analytics  
+    **Technology:** DBMS, AI, Streamlit Cloud  
+    **Course:** BCA – DBMS Mini Project
+    """
+)
