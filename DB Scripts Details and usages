@@ -1,0 +1,75 @@
+1️⃣ FULL ER DIAGRAM (GENERATION CODE)
+
+👉 Use this directly in Draw.io
+Arrange → Insert → Advanced → Mermaid
+
+erDiagram
+
+    USER {
+        int user_id PK
+        string user_name
+        string state
+        string city
+    }
+
+    AI_TOOL {
+        int tool_id PK
+        string tool_name
+        string category
+    }
+
+    USAGE_REPORT {
+        int report_id PK
+        date usage_date
+        int usage_count
+        int user_id FK
+        int tool_id FK
+    }
+
+    USER ||--o{ USAGE_REPORT : uses
+    AI_TOOL ||--o{ USAGE_REPORT : tracked_in
+
+
+Diagram Caption
+
+Fig: ER Diagram of Location-wise AI Tools Used by Users in India
+
+✅ 2️⃣ SQL SCHEMA (DBMS PART – FINAL)
+CREATE DATABASE ai_tool_usage_db;
+USE ai_tool_usage_db;
+
+CREATE TABLE user (
+    user_id INT PRIMARY KEY,
+    user_name VARCHAR(50),
+    state VARCHAR(50),
+    city VARCHAR(50)
+);
+
+CREATE TABLE ai_tool (
+    tool_id INT PRIMARY KEY,
+    tool_name VARCHAR(50),
+    category VARCHAR(50)
+);
+
+CREATE TABLE usage_report (
+    report_id INT PRIMARY KEY,
+    usage_date DATE,
+    usage_count INT,
+    user_id INT,
+    tool_id INT,
+    FOREIGN KEY (user_id) REFERENCES user(user_id),
+    FOREIGN KEY (tool_id) REFERENCES ai_tool(tool_id)
+);
+
+Sample Data
+INSERT INTO user VALUES
+(1,'Aman','Delhi','New Delhi'),
+(2,'Sara','Maharashtra','Mumbai');
+
+INSERT INTO ai_tool VALUES
+(1,'ChatGPT','LLM'),
+(2,'Copilot','Code Assistant');
+
+INSERT INTO usage_report VALUES
+(101,'2025-02-01',5,1,1),
+(102,'2025-02-01',3,2,2);
