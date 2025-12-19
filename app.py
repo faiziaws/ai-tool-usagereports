@@ -1,26 +1,26 @@
 import streamlit as st
 import pandas as pd
 
-# --------------------------------------------------
+# ==================================================
 # PAGE CONFIG
-# --------------------------------------------------
+# ==================================================
 st.set_page_config(
     page_title="AI Tool Usage Reports – India",
     layout="wide"
 )
 
-# --------------------------------------------------
+# ==================================================
 # SESSION STATE INITIALIZATION
-# --------------------------------------------------
+# ==================================================
 if "users" not in st.session_state:
-    st.session_state.users = {}   # stores registered users
+    st.session_state.users = {}
 
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
-# --------------------------------------------------
-# AUTH SECTION (REGISTER / LOGIN)
-# --------------------------------------------------
+# ==================================================
+# AUTHENTICATION (REGISTER + LOGIN)
+# ==================================================
 if not st.session_state.logged_in:
 
     st.title("🔐 User Authentication")
@@ -40,9 +40,9 @@ if not st.session_state.logged_in:
                     st.error("User already exists. Please login.")
                 else:
                     st.session_state.users[reg_username] = reg_password
-                    st.success("Registration successful! You can now login.")
+                    st.success("Registration successful! Please login.")
             else:
-                st.warning("Please fill all fields")
+                st.warning("Please fill all fields.")
 
     # ---------- LOGIN ----------
     with tab2:
@@ -60,26 +60,26 @@ if not st.session_state.logged_in:
                 st.success("Login successful!")
                 st.rerun()
             else:
-                st.error("Invalid username or password")
+                st.error("Invalid username or password.")
 
     st.stop()
 
-# --------------------------------------------------
-# MAIN DASHBOARD (AFTER LOGIN)
-# --------------------------------------------------
+# ==================================================
+# MAIN DASHBOARD
+# ==================================================
 st.title("AI Tool Usage Reports – India")
 st.subheader("Location-wise AI Tool Usage by Users")
 
 st.markdown(
     """
-    This dashboard presents **state and city-wise AI tool usage in India**.
-    It supports **user registration, login, filtering, and analytics**.
+    This dashboard analyzes **state and city-wise AI tool usage in India**.
+    All insights are calculated using **actual usage counts**.
     """
 )
 
-# --------------------------------------------------
+# ==================================================
 # DATA
-# --------------------------------------------------
+# ==================================================
 data = {
     "State": [
         "Delhi", "Maharashtra", "Jharkhand", "Bihar",
@@ -100,48 +100,103 @@ data = {
 
 df = pd.DataFrame(data)
 
-# --------------------------------------------------
-# FILTER BY STATE
-# --------------------------------------------------
+# ==================================================
+# FILTER (STATE)
+# ==================================================
 st.markdown("### 🔍 Filter Options")
 
 states = ["All States"] + sorted(df["State"].unique().tolist())
 selected_state = st.selectbox("Select State", states)
 
+filtered_df = df.copy()
 if selected_state != "All States":
-    df = df[df["State"] == selected_state]
+    filtered_df = df[df["State"] == selected_state]
 
-# --------------------------------------------------
+# ==================================================
 # DISPLAY DATA
-# --------------------------------------------------
-st.dataframe(df, use_container_width=True)
+# ==================================================
+st.dataframe(filtered_df, use_container_width=True)
 
-# --------------------------------------------------
-# SUMMARY METRICS
-# --------------------------------------------------
+# ==================================================
+# SUMMARY INSIGHTS (CORRECT LOGIC)
+# ==================================================
 st.markdown("### 📊 Summary Insights")
 
-col1, col2, col3 = st.columns(3)
-col1.metric("Total Records", len(df))
-col2.metric("AI Tools Used", df["AI Tool"].nunique())
-col3.metric("Top City", df["City"].mode()[0])
+col1, col2, col3, col4 = st.columns(4)
 
-# --------------------------------------------------
+# Total Records
+col1.metric("Total Records", len(filtered_df))
+
+# Total AI Tools
+col2.metric("AI Tools Used", filtered_df["AI Tool"].nunique())
+
+# ---------- Top City by Total Usage ----------
+top_city_df = (
+    filtered_df.groupby("City", as_index=False)["Usage Count"]
+    .sum()
+    .sort_values(by="Usage Count", ascending=False)
+)
+
+top_city = top_city_df.iloc[0]["City"]
+top_city_usage = top_city_df.iloc[0]["Usage Count"]
+col3.metric("Top City", f"{top_city} ({top_city_usage})")
+
+# ---------- Top State by Total Usage ----------
+top_state_df = (
+    filtered_df.groupby("State", as_index=False)["Usage Count"]
+    .sum()
+    .sort_values(by="Usage Count", ascending=False)
+)
+
+top_state = top_state_df.iloc[0]["State"]
+top_state_usage = top_state_df.iloc[0]["Usage Count"]
+col4.metric("Top State", f"{top_state} ({top_state_usage})")
+
+# ==================================================
+# MOST USED AI TOOL
+# ==================================================
+st.markdown("### 🤖 Most Used AI Tool (Overall)")
+
+top_tool_df = (
+    filtered_df.groupby("AI Tool", as_index=False)["Usage Count"]
+    .sum()
+    .sort_values(by="Usage Count", ascending=False)
+)
+
+top_tool = top_tool_df.iloc[0]["AI Tool"]
+top_tool_usage = top_tool_df.iloc[0]["Usage Count"]
+
+st.info(f"**{top_tool}** is the most used AI tool with **{top_tool_usage}** total usages.")
+
+# ==================================================
+# BAR CHART – STATE-WISE USAGE
+# ==================================================
+st.markdown("### 📈 State-wise AI Tool Usage")
+
+state_usage_df = (
+    filtered_df.groupby("State", as_index=False)["Usage Count"]
+    .sum()
+    .sort_values(by="Usage Count", ascending=False)
+)
+
+st.bar_chart(state_usage_df.set_index("State"))
+
+# ==================================================
 # LOGOUT
-# --------------------------------------------------
+# ==================================================
 if st.button("Logout"):
     st.session_state.logged_in = False
     st.rerun()
 
-# --------------------------------------------------
+# ==================================================
 # FOOTER
-# --------------------------------------------------
+# ==================================================
 st.success("Logical Endpoint: /aitool-usagereports")
 
 st.markdown(
     """
     **Project Name:** Location-wise AI Tools Used by Users in India  
-    **Features:** User Registration, Login, State Filter, Analytics  
+    **Features:** Register, Login, Filters, Analytics, Charts  
     **Technology:** DBMS Concepts, AI, Streamlit Cloud  
     **Course:** BCA – DBMS Mini Project
     """
